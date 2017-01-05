@@ -2,7 +2,8 @@
 var Movie = Backbone.Model.extend({
 
   defaults: {
-    like: true
+    like: true,
+    index: 0
   },
 
   toggleLike: function() {
@@ -13,7 +14,7 @@ var Movie = Backbone.Model.extend({
       this.set('like', true);
     }
 
-  }
+  },
 
 });
 
@@ -24,6 +25,7 @@ var Movies = Backbone.Collection.extend({
 
   initialize: function() {
     // your code here
+    //console.log(this)
     this.on('change:like', this.sort);
   },
 
@@ -36,15 +38,30 @@ var Movies = Backbone.Collection.extend({
     this.sort();
   },
 
+  sortCount: 0,
+
   sort: function() {
     // this.set('sorted', true);
     var comparator = this.comparator;
+    //console.log(comparator);
     this.models.sort(function(a, b) {
       // console.log(a.get('title'));
-      a.get(comparator) > b.get(comparator);
+      if (a.get(comparator) < b.get(comparator)) {
+        return -1;
+      }
+      if (a.get(comparator) > b.get(comparator)) {
+        return 1;
+      }
     });
-    console.log(this);
-    console.log('sorted');
+    this.models.forEach(function(model) {
+      var current = model.get('index');
+      model.set('index', current + 1);
+      console.log(model.get('index'));
+    }, this);
+
+    //console.log(this);
+    //console.log('sorted');
+    this.sortCount++;
 
     /*var datum = [
     {
@@ -57,6 +74,7 @@ var Movies = Backbone.Collection.extend({
       year: 1985,
       rating: 10
     }
+      }
   ];*/
   }
 
@@ -124,12 +142,16 @@ var MoviesView = Backbone.View.extend({
     // your code here
     // this.collection.on('change:comparator', this.render);
     // this.collection.on('all', this.render);
-    this.collection.on('change:attributes', this.render);
+    this.collection.on('change:index', function() {
+      this.render();
+    }, this);
     // this.collection.on('change:sorted', this.render);
-
+    //console.log(this.collection.get('sortCount'));
   },
 
   render: function() {
+    console.log('render');
+    //debugger;
     this.$el.empty();
     this.collection.forEach(this.renderMovie, this);
   },
